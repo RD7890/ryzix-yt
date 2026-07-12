@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -20,15 +19,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rohan.ryzixyt.ui.history.HistoryScreen
 import com.rohan.ryzixyt.ui.home.HomeScreen
-import com.rohan.ryzixyt.ui.notifications.NotificationsScreen
 import com.rohan.ryzixyt.ui.player.PlayerScreen
 
 private data class TabItem(val destination: RyzixDestination, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
+// Only two tabs: download/watch activity surfaces as real system notifications, not a screen.
 private val tabs = listOf(
     TabItem(RyzixDestination.Home, "Home", Icons.Outlined.Home),
     TabItem(RyzixDestination.History, "History", Icons.Outlined.History),
-    TabItem(RyzixDestination.Notifications, "Notifications", Icons.Outlined.Notifications),
 )
 
 @Composable
@@ -80,9 +78,6 @@ fun RyzixNavHost() {
                         navController.navigate(RyzixDestination.Player.createRoute(url))
                     },
                 )
-            }
-            composable(RyzixDestination.Notifications.route) {
-                NotificationsScreen()
             }
             composable(RyzixDestination.Player.route) { backStackEntry ->
                 val encodedUrl = backStackEntry.arguments?.getString("videoUrl").orEmpty()

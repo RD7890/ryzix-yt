@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RyzixTopBar(title: String) {
+fun RyzixTopBar(title: String, actions: @Composable () -> Unit = {}) {
     TopAppBar(
         title = { Text(text = title) },
         navigationIcon = {
@@ -22,6 +22,7 @@ fun RyzixTopBar(title: String) {
                 tint = Color(0xFFFF2541),
             )
         },
+        actions = { actions() },
         colors = TopAppBarDefaults.topAppBarColors(),
     )
 }

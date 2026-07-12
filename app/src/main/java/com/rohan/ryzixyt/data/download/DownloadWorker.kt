@@ -13,8 +13,8 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Downloads one stream URL to public storage while reporting progress through
- * [DownloadEventsRepository] (Notifications screen) and system notifications.
+ * Downloads one stream URL to public storage while reporting progress through the
+ * system notification (see [NotificationHelper]) — there is no separate in-app feed.
  */
 class DownloadWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
 
@@ -25,13 +25,7 @@ class DownloadWorker(appContext: Context, params: WorkerParameters) : CoroutineW
         val title = inputData.getString(KEY_TITLE) ?: "Ryzix YT video"
         val quality = inputData.getString(KEY_QUALITY_LABEL) ?: ""
         val extension = inputData.getString(KEY_EXTENSION) ?: "mp4"
-        val jobId = id.toString()
-        val notificationId = jobId.hashCode()
-        val repo = DownloadEventsRepository.getOrNull()
-
-        repo?.upsert(
-            DownloadEvent(jobId, title, quality, DownloadState.RUNNING, 0, createdAtEpochMs = System.currentTimeMillis())
-        )
+        val notificationId = id.toString().hashCode()
 
         return@withContext try {
             val moviesDir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
@@ -62,9 +56,6 @@ class DownloadWorker(appContext: Context, params: WorkerParameters) : CoroutineW
                                     lastPercent = percent
                                     setProgressAsync(androidx.work.Data.Builder().putInt(KEY_PROGRESS, percent).build())
                                     NotificationHelper.showProgress(applicationContext, notificationId, title, percent)
-                                    repo?.upsert(
-                                        DownloadEvent(jobId, title, quality, DownloadState.RUNNING, percent, createdAtEpochMs = System.currentTimeMillis())
-                                    )
                                 }
                             }
                         }
@@ -73,15 +64,9 @@ class DownloadWorker(appContext: Context, params: WorkerParameters) : CoroutineW
             }
 
             NotificationHelper.showDone(applicationContext, notificationId, title)
-            repo?.upsert(
-                DownloadEvent(jobId, title, quality, DownloadState.DONE, 100, outFile.absolutePath, System.currentTimeMillis())
-            )
             Result.success()
         } catch (e: Exception) {
             NotificationHelper.showFailed(applicationContext, notificationId, title, e.message ?: "Unknown error")
-            repo?.upsert(
-                DownloadEvent(jobId, title, quality, DownloadState.FAILED, 0, createdAtEpochMs = System.currentTimeMillis())
-            )
             Result.failure()
         }
     }

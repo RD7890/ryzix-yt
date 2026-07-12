@@ -4,25 +4,18 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import com.rohan.ryzixyt.data.download.DownloadEventsRepository
 import com.rohan.ryzixyt.data.remote.OkHttpDownloader
 import dagger.hilt.android.HiltAndroidApp
 import org.schabi.newpipe.extractor.NewPipe
-import javax.inject.Inject
 
 @HiltAndroidApp
 class RyzixApplication : Application() {
-
-    @Inject lateinit var downloadEventsRepository: DownloadEventsRepository
 
     override fun onCreate() {
         super.onCreate()
         // NewPipeExtractor needs exactly one Downloader registered for the process lifetime.
         NewPipe.init(OkHttpDownloader.instance)
         createDownloadNotificationChannel()
-        // WorkManager workers are constructed outside the Hilt graph, so we expose the
-        // singleton repository through a static hook they can reach.
-        DownloadEventsRepository.bind(downloadEventsRepository)
     }
 
     private fun createDownloadNotificationChannel() {
