@@ -8,6 +8,8 @@ data class VideoResult(
     val uploaderName: String,
     val thumbnailUrl: String?,
     val durationSeconds: Long,
+    val viewCountLabel: String? = null,
+    val uploadedLabel: String? = null,
 )
 
 /** One selectable stream a user can play or download. */
@@ -29,9 +31,22 @@ data class VideoDetails(
     val uploaderName: String,
     val thumbnailUrl: String?,
     val durationSeconds: Long,
+    val viewCountLabel: String? = null,
     val hlsUrl: String?,
     val dashUrl: String?,
     val playbackUrl: String?,
     val videoOptions: List<StreamOption>,
     val audioOptions: List<StreamOption>,
+)
+
+/** A quick-access content shelf on the Home screen, Vidmate-style. */
+data class HomeCategory(val id: String, val label: String)
+
+val HOME_CATEGORIES = listOf(
+    HomeCategory("trending", "Trending"),
+    HomeCategory("music", "Music"),
+    HomeCategory("gaming", "Gaming"),
+    HomeCategory("movies", "Movies"),
+    HomeCategory("news", "News"),
+    HomeCategory("sports", "Sports"),
 )
