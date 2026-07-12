@@ -1,0 +1,31 @@
+package com.rohan.ryzixyt
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.rohan.ryzixyt.ui.navigation.RyzixNavHost
+import com.rohan.ryzixyt.ui.theme.RyzixYTTheme
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent { RyzixApp() }
+    }
+}
+
+@Composable
+private fun RyzixApp() {
+    RyzixYTTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            RyzixNavHost()
+        }
+    }
+}

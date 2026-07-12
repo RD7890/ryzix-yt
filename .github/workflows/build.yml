@@ -1,0 +1,132 @@
+name: Ryzix YT CI/CD
+
+on:
+  push:
+    branches: [ "main", "dev", "release/**" ]
+    paths-ignore: [ "**.md" ]
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore: [ "**.md" ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+env:
+  JAVA_VERSION: '17'
+  GRADLE_VERSION: '8.9'
+  ANDROID_COMPILE_SDK: '35'
+  ANDROID_MIN_SDK: '26'
+
+jobs:
+  build:
+    name: Build & Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ env.GRADLE_VERSION }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-${{ env.GRADLE_VERSION }}-
+            ${{ runner.os }}-gradle-
+
+      - name: Install Gradle ${{ env.GRADLE_VERSION }}
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-${{ env.GRADLE_VERSION }}-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp/gradle-install
+          echo "/tmp/gradle-install/gradle-${{ env.GRADLE_VERSION }}/bin" >> $GITHUB_PATH
+
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version ${{ env.GRADLE_VERSION }} --distribution-type bin
+          chmod +x gradlew
+
+      - name: Set up signing keystore
+        run: |
+          base64 -d keystore.p12.b64 > ryzixyt.p12
+          cat > keystore.properties << 'EOF'
+          storeFile=../ryzixyt.p12
+          storePassword=RyzixYT@2026
+          keyAlias=ryzixyt
+          keyPassword=RyzixYT@2026
+          EOF
+          echo "Keystore ready"
+
+      - name: Compute version
+        id: version
+        run: |
+          BUILD=${{ github.run_number }}
+          BASE=$(grep -oP '(?<=versionName = ")\d+\.\d+(?=\.)' app/build.gradle.kts | head -1 || echo "1.0")
+          FULL="${BASE}.${BUILD}"
+          echo "name=${FULL}" >> $GITHUB_OUTPUT
+          echo "code=${BUILD}" >> $GITHUB_OUTPUT
+          echo "Version: ${FULL} (code: ${BUILD})"
+
+      - name: Assemble Release APKs
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: List generated APKs
+        run: find app/build/outputs/apk/release -name "*.apk" -exec ls -lh {} \;
+
+      - name: Collect APKs
+        id: apks
+        run: |
+          VERSION=${{ steps.version.outputs.name }}
+          BUILD=${{ github.run_number }}
+          mkdir -p release-apks
+          for APK in app/build/outputs/apk/release/*.apk; do
+            [ -f "$APK" ] || continue
+            FILENAME=$(basename "$APK" .apk)
+            cp "$APK" "release-apks/${FILENAME}-v${VERSION}-build${BUILD}.apk"
+          done
+          echo "=== Final APKs ==="
+          ls -lh release-apks/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.name }}-build.${{ github.run_number }}
+          name: "Ryzix YT v${{ steps.version.outputs.name }} (Build #${{ github.run_number }})"
+          body: |
+            ## Ryzix YT v${{ steps.version.outputs.name }}
+
+            Automated Release — Build #${{ github.run_number }}
+
+            | Info | Value |
+            |------|-------|
+            | Branch | `${{ github.ref_name }}` |
+            | Commit | `${{ github.sha }}` |
+            | Signed | Yes — consistent release keystore |
+
+            ### APK Variants
+            | Variant | ABI |
+            |---------|-----|
+            | arm64-v8a | ARM 64-bit (recommended for modern devices) |
+          draft: false
+          prerelease: ${{ github.ref_name != 'main' }}
+          files: release-apks/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

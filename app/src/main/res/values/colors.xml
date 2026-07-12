@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ryzix_primary">#FF2541</color>
+    <color name="ryzix_background">#0E0E10</color>
+    <color name="ryzix_surface">#17171B</color>
+</resources>

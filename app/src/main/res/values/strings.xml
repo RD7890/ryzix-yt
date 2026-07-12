@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ryzix YT</string>
+    <string name="download_channel_name">Downloads</string>
+    <string name="download_channel_desc">Shows progress and completion of video downloads</string>
+</resources>
