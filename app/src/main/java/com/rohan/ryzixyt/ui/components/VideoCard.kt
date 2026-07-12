@@ -63,7 +63,7 @@ fun VideoCard(result: VideoResult, onClick: () -> Unit, modifier: Modifier = Mod
                 )
             }
         }
-        Row(modifier = Modifier.padding(horizontal = 10.dp, top = 10.dp)) {
+        Row(modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
             Box(
                 modifier = Modifier
                     .size(28.dp)
