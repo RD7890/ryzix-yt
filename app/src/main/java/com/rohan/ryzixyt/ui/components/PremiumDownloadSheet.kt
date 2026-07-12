@@ -121,7 +121,7 @@ fun PremiumDownloadOptions(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, top = 12.dp)
+                            .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .background(MaterialTheme.colorScheme.primary)
                             .clickable { onDownload(current) }
